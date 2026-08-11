@@ -21,9 +21,7 @@ function MainApp() {
   const [activeTab, setActiveTab] = useState('generator');
   const [requirement, setRequirement] = useState('');
   const [result, setResult] = useState('');
-  const [generatedImage, setGeneratedImage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [imageLoading, setImageLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   
@@ -142,34 +140,6 @@ function MainApp() {
       setError(err.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGenerateImage = async () => {
-    if (!requirement.trim()) return;
-
-    setImageLoading(true);
-    setError('');
-    setGeneratedImage('');
-    
-    try {
-      const response = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: requirement }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate image');
-      }
-      
-      const data = await response.json();
-      setGeneratedImage(data.imageUrl);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setImageLoading(false);
     }
   };
 
@@ -308,14 +278,6 @@ function MainApp() {
                         <Mic className="w-5 h-5" />
                       </button>
                       <button
-                        onClick={handleGenerateImage}
-                        disabled={imageLoading || !requirement.trim()}
-                        className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 relative z-20"
-                      >
-                        {imageLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
-                        <span>Visualize</span>
-                      </button>
-                      <button
                         onClick={handleGenerate}
                         disabled={loading || !requirement.trim()}
                         className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 relative z-20"
@@ -329,13 +291,6 @@ function MainApp() {
               </div>
 
               {error && <div className="p-4 bg-red-950/50 text-red-400 border border-red-900 rounded-xl">{error}</div>}
-              
-              {generatedImage && (
-                <section className="bg-neutral-900 rounded-xl shadow-sm border border-neutral-800 overflow-hidden p-4">
-                  <h2 className="text-sm font-medium text-neutral-300 mb-4">Generated Visualization</h2>
-                  <img src={generatedImage} alt="Generated visualization" className="w-full rounded-lg" referrerPolicy="no-referrer" />
-                </section>
-              )}
 
               {result && (
                 <section className="bg-neutral-900 rounded-xl shadow-sm border border-neutral-800 overflow-hidden">

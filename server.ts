@@ -84,46 +84,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/generate-image", async (req, res) => {
-    try {
-      if (isLockdown) {
-        addLog("BLOCKED_ATTACK", "Image generation blocked due to active lockdown.");
-        return res.status(503).json({ error: "System is currently locked down for security reasons." });
-      }
 
-      if (systemSettings.maintenanceMode) {
-        addLog("BLOCKED_MAINTENANCE", "Image generation blocked due to maintenance mode.");
-        return res.status(503).json({ error: "System is currently undergoing maintenance. Generation features are temporarily disabled." });
-      }
-
-      const { prompt } = req.body;
-      if (!prompt) {
-        return res.status(400).json({ error: "Prompt is required" });
-      }
-
-      addLog("GENERATE_IMAGE", `User requested image generation for: ${prompt.substring(0, 50)}...`);
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash-lite',
-        contents: `Generate a clean, colorful SVG architecture diagram or data flow chart based on the following project description. Return ONLY valid SVG code, no markdown wrapping, no explanation, just the raw <svg>...</svg> tag.\n\nProject description: ${prompt}`,
-      });
-
-      const text = response.text || '';
-      const match = text.match(/<svg[\s\S]*<\/svg>/i);
-      const cleanSvg = match ? match[0] : text;
-
-      if (cleanSvg && cleanSvg.includes('<svg')) {
-        const base64Svg = Buffer.from(cleanSvg).toString('base64');
-        const imageUrl = `data:image/svg+xml;base64,${base64Svg}`;
-        res.json({ imageUrl });
-      } else {
-        res.status(500).json({ error: "Failed to generate valid SVG." });
-      }
-    } catch (error: any) {
-      console.error("Error generating image:", error);
-      return res.status(500).json({ error: error.message || "Internal Server Error" });
-    }
-  });
 
       // Admin endpoints
       app.post("/api/admin/login", (req, res) => {
