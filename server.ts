@@ -59,12 +59,12 @@ async function startServer() {
         return res.status(503).json({ error: "System is currently undergoing maintenance. Generation features are temporarily disabled." });
       }
 
-      const { requirement } = req.body;
-      if (!requirement) {
-        return res.status(400).json({ error: "Requirement is required" });
+      const reqPrompt = req.body.prompt || req.body.requirement;
+      if (!reqPrompt) {
+        return res.status(400).json({ error: "Prompt or requirement is required" });
       }
 
-      addLog("GENERATE", `User requested code generation for: ${requirement.substring(0, 50)}...`);
+      addLog("GENERATE", `User requested code generation for: ${reqPrompt.substring(0, 50)}...`);
 
       const prompt = `Role: You are an expert AI Code Helper. Your primary goal is to translate plain English requirements into clean, efficient, and production-ready code snippets.
 
@@ -81,7 +81,7 @@ Instructions & Rules:
    - HTML: Use semantic tags and ensure accessibility (e.g., alt attributes).
    - CSS: Write responsive, modular, and modern CSS (e.g., Flexbox/Grid). Do not use inline styles.
 
-User: "${requirement}"
+User: "${reqPrompt}"
 Assistant:`;
 
       const response = await ai.models.generateContent({
