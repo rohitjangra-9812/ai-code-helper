@@ -1,0 +1,6 @@
+{
+  "name": "AI Code Helper",
+  "description": "Translate plain English requirements into clean, production-ready code snippets.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
