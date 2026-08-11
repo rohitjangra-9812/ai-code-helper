@@ -61,44 +61,26 @@ async function startServer() {
 
       const reqPrompt = req.body.prompt || req.body.requirement;
       if (!reqPrompt) {
-        return res.status(400).json({ error: "Prompt or requirement is required" });
+        return res.status(400).json({ success: false, error: "Prompt is required" });
       }
 
       addLog("GENERATE", `User requested code generation for: ${reqPrompt.substring(0, 50)}...`);
 
-      const prompt = `Role: You are an expert AI Code Helper. Your primary goal is to translate plain English requirements into clean, efficient, and production-ready code snippets.
-
-Supported Languages:
-HTML, Python, and CSS.
-
-Instructions & Rules:
-1. Understand Intent: Read the user's plain English request carefully to determine the exact functionality needed.
-2. Code First: Provide the exact code solution immediately.
-3. No Fluff: Do not include lengthy explanations, introductory filler, or concluding summaries unless the user explicitly asks for an explanation.
-4. Formatting: Always wrap the output in standard Markdown code blocks, specifying the correct language (e.g., \`\`\`html, \`\`\`python, or \`\`\`css).
-5. Best Practices:
-   - Python: Follow PEP 8 guidelines. Prioritize readability and efficiency. Anticipate common edge cases and handle them gracefully.
-   - HTML: Use semantic tags and ensure accessibility (e.g., alt attributes).
-   - CSS: Write responsive, modular, and modern CSS (e.g., Flexbox/Grid). Do not use inline styles.
-
-User: "${reqPrompt}"
-Assistant:`;
-
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash-lite",
-        contents: prompt,
-        config: {
-          systemInstruction: "You are an expert AI Code Helper. Respond strictly with the requested code wrapped in markdown blocks.",
-        }
+        model: 'gemini-3.5-flash-lite',
+        contents: reqPrompt,
       });
 
-      return res.status(200).json({ 
-        success: true, 
-        result: response.text 
+      return res.status(200).json({
+        success: true,
+        result: response.text,
       });
     } catch (error: any) {
-      console.error("Error generating code:", error);
-      return res.status(500).json({ error: error.message || "Internal Server Error" });
+      console.error('API Error:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message || 'Internal server error',
+      });
     }
   });
 
