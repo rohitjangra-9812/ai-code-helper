@@ -119,36 +119,25 @@ function MainApp() {
         body: JSON.stringify({ requirement }),
       });
       
+      // Check if the response is actually JSON before parsing
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const rawText = await response.text();
+        throw new Error(`Server returned non-JSON: ${rawText.slice(0, 100)}`);
+      }
+
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Something went wrong');
+        throw new Error(data.error || 'Something went wrong');
       }
       
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('Stream error');
-      const decoder = new TextDecoder('utf-8');
-      let currentResult = '';
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ') && !line.includes('[DONE]')) {
-            try {
-              const data = JSON.parse(line.substring(6));
-              if (data.text) {
-                currentResult += data.text;
-                setResult(currentResult);
-              }
-            } catch (e) {}
-          }
-        }
+      if (!data.success) {
+        throw new Error(data.error || 'Generation failed');
       }
-      
-      setHistory(prev => [{ id: Date.now().toString(), requirement, result: currentResult, timestamp: Date.now() }, ...prev]);
+
+      setResult(data.result);
+      setHistory(prev => [{ id: Date.now().toString(), requirement, result: data.result, timestamp: Date.now() }, ...prev]);
     } catch (err: any) {
       setError(err.message);
     } finally {

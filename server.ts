@@ -84,28 +84,21 @@ Instructions & Rules:
 User: "${requirement}"
 Assistant:`;
 
-      const responseStream = await ai.models.generateContentStream({
-        model: "gemini-3.6-flash",
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash-lite",
         contents: prompt,
         config: {
           systemInstruction: "You are an expert AI Code Helper. Respond strictly with the requested code wrapped in markdown blocks.",
         }
       });
 
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-
-      for await (const chunk of responseStream) {
-        if (chunk.text) {
-          res.write(`data: ${JSON.stringify({ text: chunk.text })}\n\n`);
-        }
-      }
-      res.write('data: [DONE]\n\n');
-      res.end();
-    } catch (error) {
+      return res.status(200).json({ 
+        success: true, 
+        result: response.text 
+      });
+    } catch (error: any) {
       console.error("Error generating code:", error);
-      res.status(500).json({ error: "Failed to generate code." });
+      return res.status(500).json({ error: error.message || "Internal Server Error" });
     }
   });
 
@@ -129,7 +122,7 @@ Assistant:`;
       addLog("GENERATE_IMAGE", `User requested image generation for: ${prompt.substring(0, 50)}...`);
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-3.5-flash-lite',
         contents: `Generate a clean, colorful SVG architecture diagram or data flow chart based on the following project description. Return ONLY valid SVG code, no markdown wrapping, no explanation, just the raw <svg>...</svg> tag.\n\nProject description: ${prompt}`,
       });
 
@@ -144,9 +137,9 @@ Assistant:`;
       } else {
         res.status(500).json({ error: "Failed to generate valid SVG." });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating image:", error);
-      res.status(500).json({ error: "Failed to generate image." });
+      return res.status(500).json({ error: error.message || "Internal Server Error" });
     }
   });
 
